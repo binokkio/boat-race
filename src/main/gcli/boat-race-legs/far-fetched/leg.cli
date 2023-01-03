@@ -1,0 +1,37 @@
++ 'Define and stash the target message'
+-t StringDef 'Hello, World!'
+-t Target:Stash message
+
++ 'Define an alternative message and stash it 20 times so that all sits between the final fetch and the target message'
+-t StringDef 'Bye, World!'
+
+-s message
+-s message
+-s message
+-s message
+-s message
+-s message
+-s message
+-s message
+-s message
+-s message
+
+-s message
+-s message
+-s message
+-s message
+-s message
+-s message
+-s message
+-s message
+-s message
+-s message
+
++ 'Fetch the target message a bunch of times'
+-t Repeat 20000000
+-f Target.message
+
++ 'Count the number of times the correct message was fetched and print it, this is the expected result'
+-t RegexFilterIn '^H'
+-t CountCollect
+-t Out
