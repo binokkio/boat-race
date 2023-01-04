@@ -28,10 +28,10 @@
 -s message
 
 + 'Fetch the target message a bunch of times'
--t Repeat 20000000
+-t Repeat 100000000
 -f Target.message
 
 + 'Count the number of times the correct message was fetched and print it, this is the expected result'
 -t RegexFilterIn '^H'
--t CountCollect
+-t CountCollect!
 -t Out

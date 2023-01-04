@@ -1,0 +1,5 @@
+-t StringDef '🐑'
+-sft Flock:Repeat 2
+-t Repeat 1000000000
+-stt CountCollect!
+-t Out

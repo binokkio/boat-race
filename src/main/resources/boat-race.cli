@@ -32,8 +32,9 @@
 -t StringDef '${path.absolute?keepBeforeLast("/")?keepAfterLast("/")}'
 -s leg
 
-+ 'Time and run the leg'
--t Log 'Gingester ${version} starting leg ${leg}'
++ 'Time and run the leg a couple of times'
+-t Repeat 3
+-t Log 'Gingester ${version} starting leg ${leg} #${Repeat.description + 1}'
 -t TimeNow -s startTime
 -t Exec !stdin 'java -jar ${repo}/executable/target/gingester-${version}.jar -cf ${path.absolute}' . YIELD IGNORE ignoreExitCode!
 -t InputStreamToString
@@ -48,18 +49,18 @@
 + 'Calculate duration'
 -t Eval 'import java.time.Duration; Duration.between(context.require("startTime"), context.require("endTime"))'
 -s duration
--t Log 'Gingester ${version} finished leg ${leg} in ${duration}'
+-t Log 'Gingester ${version} finished leg ${leg} #${Repeat.description + 1} in ${duration}'
 
-+ 'Collect duration per leg'
++ 'Collect durations per leg'
 -f leg
--stt MapCollect ^ tree
--s durationPerLegMap
+-stt MapCollectLists ^ tree
+-s durationsPerLegMap
 
-+ 'Collect durationPerLegMap per version'
++ 'Collect durationsPerLegMap per version'
 -f version
 -t MapCollect ^ linked
 
++ 'Just a printout for now'
 -t ObjectToJson
 -t JsonToString pretty
-
 -t Out

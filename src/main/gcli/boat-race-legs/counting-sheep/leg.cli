@@ -1,4 +1,4 @@
 -t StringDef '🐑'
--t Repeat 200000000
--t CountCollect
+-t Repeat 2000000000
+-t CountCollect!
 -t Out
