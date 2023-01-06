@@ -1,7 +1,7 @@
 -r 0
 
 -t Giterate '{
-        origin: "[=origin]"
+        origin: "[=origin!"../gingester"]"
     }'
 
 -s repo
@@ -33,10 +33,10 @@
 -s leg
 
 + 'Time and run the leg a couple of times'
--t Repeat 3
--t Log 'Gingester ${version} starting leg ${leg} #${Repeat.description + 1}'
+-t Log 'Gingester ${version} starting [=reps!3] rounds of ${leg}'
+-t Repeat [=reps!3]
 -t TimeNow -s startTime
--t Exec !stdin 'java -jar ${repo}/executable/target/gingester-${version}.jar -cf ${path.absolute}' . YIELD IGNORE ignoreExitCode!
+-t Exec !stdin 'java -jar ${repo}/executable/target/gingester-${version}.jar -r 10 -cf ${path.absolute}' . YIELD LOG ignoreExitCode!
 -t InputStreamToString
 -s result
 -t TimeNow -s endTime
@@ -49,7 +49,7 @@
 + 'Calculate duration'
 -t Eval 'import java.time.Duration; Duration.between(context.require("startTime"), context.require("endTime"))'
 -s duration
--t Log 'Gingester ${version} finished leg ${leg} #${Repeat.description + 1} in ${duration}'
+-t Log 'Gingester ${version} finished ${leg} round ${Repeat.description + 1} in ${duration}'
 
 + 'Collect durations per leg'
 -f leg
