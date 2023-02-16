@@ -1,0 +1,4 @@
+-t Repeat 100000
+-t Gcli ' -t Passthrough'
+-t CountCollect!
+-t StdOut
