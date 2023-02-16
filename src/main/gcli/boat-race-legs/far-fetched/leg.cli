@@ -34,4 +34,4 @@
 + 'Count the number of times the correct message was fetched and print it, this is the expected result'
 -t RegexFilterIn '^H'
 -t CountCollect!
--t Out
+-t StdOut

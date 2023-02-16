@@ -36,7 +36,7 @@
 -t Log 'Gingester ${version} starting [=reps!3] rounds of ${leg}'
 -t Repeat [=reps!3]
 -t TimeNow -s startTime
--t Exec !stdin 'java -jar ${repo}/executable/target/gingester-${version}.jar -r 10 -cf ${path.absolute}' . YIELD LOG ignoreExitCode!
+-t Exec !stdin 'java -Xms1g -Xmx1g -jar ${repo}/executable/target/gingester-${version}.jar -r 99999 -cf ${path.absolute}' . YIELD LOG ignoreExitCode!
 -t InputStreamToString
 -s result
 -t TimeNow -s endTime
@@ -63,4 +63,4 @@
 + 'Just a printout for now'
 -t ObjectToJson
 -t JsonToString pretty
--t Out
+-t StdOut
