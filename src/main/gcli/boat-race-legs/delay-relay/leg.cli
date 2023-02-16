@@ -1,8 +1,0 @@
--t StringDef 'Hello, World!'
--t Delay 10000
--t Delay 10000
--t Delay 10000
--t Delay 10000
--t Delay 10000
--t Delay 10000
--t Out
