@@ -1,0 +1,122 @@
+<#function avg nums>
+    <#local sum = 0>
+    <#list nums as num>
+        <#local sum += num>
+    </#list>
+    <#if nums?size != 0>
+        <#return sum / nums?size>
+    </#if>
+</#function>
+
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <style>
+            body { font-family: monospace }
+
+            .grid {
+                display: inline-grid;
+                grid-template-rows:
+                    [name] auto
+                    <#list legs as leg>
+                        [${leg}] auto
+                    </#list>
+                    ;
+                grid-template-columns: repeat(${results?size}, auto);
+                grid-gap: 1px;
+            }
+
+            .grid > * {
+                padding: 4px;
+                background-color: white;
+                border: 1px solid gray;
+            }
+
+            .leg-name {
+                grid-column: 1;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .boat-name {
+                grid-row: name;
+                text-align: center;
+            }
+
+            .result {
+                display: flex;
+                align-items: center;
+            }
+
+            .delta {
+                flex-basis: 0;
+                flex-grow: 3;
+                text-align: center;
+            }
+
+            .times {
+                flex-basis: 0;
+                flex-grow: 2;
+                text-align: right;
+            }
+
+            <#list legs as leg>
+                .leg-${leg} { grid-row: ${leg} }
+            </#list>
+
+            <#list results as result>
+                .boat-${result?index + 1} { grid-column: ${result?index + 2} }
+            </#list>
+        </style>
+    </head>
+    <body>
+        <div class="grid">
+
+            <#list legs as leg>
+                <span class="leg-name leg-${leg}">${leg}</span>
+            </#list>
+
+            <#list results as result>
+                <span class="boat-name boat-${result?index + 1}">
+                    <span>
+                        ${result.version}
+                        <br />
+                        <small>${result.timestamp}</small>
+                        <br />
+                        <small>${result.checkout}</small>
+                    </span>
+                </span>
+                <#list result.performance as leg, times>
+                    <#assign bg = "white">
+                    <#assign compare = !result?isFirst && results[result?index - 1].performance[leg]??>
+                    <#if compare>
+                        <#assign deltaPercent = avg(times) / avg(results[result?index - 1].performance[leg]) * 100  - 100>
+                        <#assign strength = 255 - (deltaPercent?abs * 2 * 255 / 100)?ceiling>
+                        <#assign strength = (strength lt 0)?then(0, strength)>
+                        <#if deltaPercent lt 0>
+                            <#assign bg = "rgb(" + strength + ", 255, " + strength + ")">
+                        <#elseIf deltaPercent gt 0>
+                            <#assign bg = "rgb(255, " + strength + ", " + strength + ")">
+                        </#if>
+                    </#if>
+                    <span class="result leg-${leg} boat-${result?index + 1}" style="background-color: ${bg}">
+                        <#if compare>
+                            <span class="delta">
+                                ${(deltaPercent gt 0)?then("+", "")}${deltaPercent?string("0.00")}%
+                            </span>
+                        </#if>
+                        <span class="times">
+                            <#list times?sort as time>
+                                ${time?string("0.00")}s
+                                <#if time?hasNext><br /></#if>
+                            </#list>
+                        </span>
+                    </span>
+                </#list>
+            </#list>
+
+        </div>
+    </body>
+</html>

@@ -1,0 +1,29 @@
+++ Collect boat race legs ++
+-t PathSearch '{
+        root: "[=legs!"src/main/gcli/boat-race-legs"]",
+        globs: "**/leg.gcli"
+    }'
+-t StringDef '${path.absolute?keepBeforeLast("/")?keepAfterLast("/")}'
+-t SetCollect tree
+-sft Stash legs
+
+++ Collect results ++
+-t PathSearch '{
+        root: "[=fs]/results",
+        globs: "*"
+    }'
+-t ObjectToString
+-stt SetCollect tree
+-t SetStream
+-t PathDef '${__in__}'
+-t BytesToJson
+-stt ListCollect
+-s results
+
+++ Render html ++
+-t StringDef '{
+        template: "/report.html",
+        is: "RESOURCE"
+    }'
+
+-t PathOverwrite '[=fs]/report.html'

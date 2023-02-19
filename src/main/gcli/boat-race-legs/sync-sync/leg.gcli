@@ -1,0 +1,5 @@
+-sft Repeat 50000000
+-stt OnFinish
+-stt OnFinish
+-t CountCollect!
+-t StdOut

@@ -1,0 +1,86 @@
+-r 0
+
+++ Create `repo` path ++
+-t PathDef '[=fs]/repo-${.now?string["yyyyMMdd-HHmmss"]}'
+-s repo
+
+++ Clone gingester to `repo` ++
+-t Exec !stdin 'mkdir -p ${repo}' . IGNORE IGNORE
+-t Clone:Exec !stdin 'git clone ../gingester ${repo}' . IGNORE IGNORE
+
+++ Iterate target checkouts ++
+-t JsonDef @ '[=checkouts]'
+-t JsonPath '$[*]'
+-s checkout
+
+++ Checkout target ++
+-t Exec !stdin 'git checkout ${checkout}' '${repo}' IGNORE IGNORE
+
+++ Get version from pom ++
+-t PathDef '${repo}/pom.xml'
+-t XmlToJson
+-t JsonPath '$.version'
+-s version
+
+++ Get commit timestamp ++
+-t Exec !stdin 'git log -1 "--date=format:%Y-%m-%dT%H-%M-%S%z" --format=%ad' '${repo}' YIELD IGNORE
+-t InputStreamToString
+-ss timestamp '${__in__?trim}'
+
+++ Define id ++
+-ss id '${version}__${timestamp}__${checkout}'
+
+++ Build gingester at this commit ++
+-t Log 'Building gingester ${id}'
+-sft Exec !stdin 'mvn clean package -DskipTests' '${repo}' IGNORE IGNORE
+
+++ Iterate through the boat race legs ++
+-t PathSearch '{
+        root: "[=legs!"src/main/gcli/boat-race-legs"]",
+        globs: "**/leg.gcli"
+    }'
+
+++ Get leg name ++
+-t StringDef '${path.absolute?keepBeforeLast("/")?keepAfterLast("/")}'
+-s leg
+
+++ Time and run the leg a couple of times ++
+-t Log 'Gingester ${id} starting [=reps!3] rounds of ${leg}'
+-t Repeat [=reps!3]
+-t TimeNow -s startTime
+-t Exec !stdin 'java -Xms1g -Xmx1g -jar ${repo}/executable/target/gingester-${version}.jar -r 0 -cf ${path.absolute}' . YIELD LOG ignoreExitCode!
+-t InputStreamToString
+-s result
+-t TimeNow -s endTime
+
+++ Filter out runs that did not produce the expected result ++
+-t PathDef '${path.absolute?keepBeforeLast("/")}/expected-result.txt'
+-t InputStreamToString
+-t Filter 'context.require("result").equals(in)'
+
+++ Calculate duration ++
+-t Eval 'import java.time.Duration; Duration.between(context.require("startTime"), context.require("endTime"))'
+-s duration
+-t Log 'Gingester ${id} finished ${leg} round ${Repeat.description + 1} in ${duration}'
+
+++ Collect durations per leg ++
+-f leg
+-stt MapCollectLists ^ tree
+-t ObjectToJson
+-t JsonDef @ '{
+        version: "${version}",
+        timestamp: "${timestamp}",
+        checkout: "${checkout}",
+        performance: ${__in__}
+    }'
+-t JsonToString pretty
+-t PathOverwrite '[=fs]/results/${id}.json'
+
+++ Tidy up ++
+-sf Clone
+-stt OnFinish
+-f repo
+-t PathDelete recursive
+
+++ Report ++
+-cr report '[@kwargs /]'
