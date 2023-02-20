@@ -1,0 +1,6 @@
+-t Repeat 10
+-t PathDef '[=fs]/downloads/mtg-atomic-cards.json.gz'
+-t Unpack
+-t JsonStream '$.data[*]'
+-t CountCollect
+-t StdOut

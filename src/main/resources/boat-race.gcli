@@ -1,12 +1,16 @@
 -r 0
 
+++ Store fs kwarg in context ++
+-t PathDef '[=fs]'
+-s fs
+
 ++ Create `repo` path ++
 -t PathDef '[=fs]/repo-${.now?string["yyyyMMdd-HHmmss"]}'
 -s repo
 
 ++ Clone gingester to `repo` ++
 -t Exec !stdin 'mkdir -p ${repo}' . IGNORE IGNORE
--t Clone:Exec !stdin 'git clone ../gingester ${repo}' . IGNORE IGNORE
+-t Clone:Exec !stdin 'git clone "[=gingester!"../gingester"]" ${repo}' . IGNORE IGNORE
 
 ++ Iterate target checkouts ++
 -t JsonDef @ '[=checkouts]'
@@ -32,39 +36,46 @@
 
 ++ Build gingester at this commit ++
 -t Log 'Building gingester ${id}'
--sft Exec !stdin 'mvn clean package -DskipTests' '${repo}' IGNORE IGNORE
+-t Boat:Exec !stdin 'mvn clean package -DskipTests' '${repo}' IGNORE IGNORE
 
 ++ Iterate through the boat race legs ++
--t PathSearch '{
-        root: "[=legs!"src/main/gcli/boat-race-legs"]",
-        globs: "**/leg.gcli"
-    }'
-
-++ Get leg name ++
--t StringDef '${path.absolute?keepBeforeLast("/")?keepAfterLast("/")}'
+-t ResourceOpen '/legs/index.txt'
+-t InputStreamSplit
+-t InputStreamToString
 -s leg
+-sft Leg:RegexFilterIn '[=legFilter!".*"]'
+
+++ Maybe prepare ++
+-t ResourceOpen '/legs/${leg}/prepare.gcli' optional!
+-t Log 'Preparing for leg ${leg}'
+-t InputStreamToString
+-t Gcli '${__in__}'
+-stt OnFinish
 
 ++ Time and run the leg a couple of times ++
--t Log 'Gingester ${id} starting [=reps!3] rounds of ${leg}'
--t Repeat [=reps!3]
+-t Log 'Gingester ${id} starting [=rounds!3] rounds of ${leg}'
+-t ResourceOpen '/legs/${leg}/leg.gcli'
+-t PathOverwriteSync '[=fs]/leg.gcli'
+-t Round:Repeat [=rounds!3]
 -t TimeNow -s startTime
--t Exec !stdin 'java -Xms1g -Xmx1g -jar ${repo}/executable/target/gingester-${version}.jar -r 0 -cf ${path.absolute}' . YIELD LOG ignoreExitCode!
+-t Exec !stdin 'java -Xms1g -Xmx1g -jar ${repo}/executable/target/gingester-${version}.jar -r 0 -cf [=fs]/leg.gcli \'{fs:"[=fs]"}\'' . YIELD LOG ignoreExitCode!
 -t InputStreamToString
 -s result
 -t TimeNow -s endTime
 
 ++ Filter out runs that did not produce the expected result ++
--t PathDef '${path.absolute?keepBeforeLast("/")}/expected-result.txt'
+-t ResourceOpen '/legs/${leg}/expected-result.txt'
 -t InputStreamToString
 -t Filter 'context.require("result").equals(in)'
 
 ++ Calculate duration ++
 -t Eval 'import java.time.Duration; Duration.between(context.require("startTime"), context.require("endTime"))'
 -s duration
--t Log 'Gingester ${id} finished ${leg} round ${Repeat.description + 1} in ${duration}'
+-t Log 'Gingester ${id} finished ${leg} round ${Round.description + 1} in ${duration}'
 
 ++ Collect durations per leg ++
 -f leg
+-sf Boat
 -stt MapCollectLists ^ tree
 -t ObjectToJson
 -t JsonDef @ '{
@@ -81,6 +92,8 @@
 -stt OnFinish
 -f repo
 -t PathDelete recursive
+-t PathDef '[=fs]/leg.gcli'
+-t PathDelete
 
 ++ Report ++
 -cr report '[@kwargs /]'
