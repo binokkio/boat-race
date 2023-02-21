@@ -1,9 +1,5 @@
 -r 0
 
-++ Store fs kwarg in context ++
--t PathDef '[=fs]'
--s fs
-
 ++ Create `repo` path ++
 -t PathDef '[=fs]/repo-${.now?string["yyyyMMdd-HHmmss"]}'
 -s repo
@@ -47,9 +43,7 @@
 
 ++ Maybe prepare ++
 -t ResourceOpen '/legs/${leg}/prepare.gcli' optional!
--t Log 'Preparing for leg ${leg}'
--t InputStreamToString
--t Gcli '${__in__}'
+-t Gcli '{template: "/legs/${leg}/prepare.gcli", is: "RESOURCE", kwargs: [@kwargs /]}'
 -stt OnFinish
 
 ++ Time and run the leg a couple of times ++
