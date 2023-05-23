@@ -1,9 +1,7 @@
 ++ Collect boat race legs ++
--t PathSearch '{
-        root: "[=legs!"src/main/gcli/boat-race-legs"]",
-        globs: "**/leg.gcli"
-    }'
--t StringDef '${path.absolute?keepBeforeLast("/")?keepAfterLast("/")}'
+-t ResourceOpen '/legs/index.txt'
+-t InputStreamSplit
+-t InputStreamToString
 -t SetCollect tree
 -sft Stash legs
 

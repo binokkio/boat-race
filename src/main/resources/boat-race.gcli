@@ -43,7 +43,7 @@
 
 ++ Maybe prepare ++
 -t ResourceOpen '/legs/${leg}/prepare.gcli' optional!
--t Gcli '{template: "/legs/${leg}/prepare.gcli", is: "RESOURCE", kwargs: [@kwargs /]}'
+-t Gcli '{source: "/legs/${leg}/prepare.gcli", is: "RESOURCE", kwargs: [@kwargs /]}'
 -stt OnFinish
 
 ++ Time and run the leg a couple of times ++

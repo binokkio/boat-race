@@ -2,5 +2,5 @@
 -t PathFilterExistsOut
 -s target
 -t Log info 'Downloading Magic the Gathering atomic cards'
--t HttpGet 'https://mtgjson.com/api/v5/AtomicCards.json.gz'
+-t Http GET 'https://mtgjson.com/api/v5/AtomicCards.json.gz'
 -t PathWrite '${target}'
